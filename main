@@ -50,15 +50,15 @@ int main() {
 	CONSOLE_SCREEN_BUFFER_INFO cbsi;
 	COORD position{};
 
-	std::vector<int> board;
+	std::vector<int*> board;
 	std::vector<int> board2;
 
 	int neighbors[boardArea] = {};
 
 	for (int i = 0; i <= boardArea; ++i) {
 
-		board.push_back(rand() % 2);
-		board2.push_back(board[i]);
+		board.push_back(new int(rand() % 2));
+		board2.push_back(*board[i]);
 	}
 
 	while (true) {
@@ -72,16 +72,17 @@ int main() {
 					//Checking whether neighbors are alive or dead.
 					int directionModifier = ReturnDirectionModifier(i, j);
 
-					if (board[i] == 1) {
+					if (*board[i] == 1) {
 
 						++neighbors[directionModifier];
 					}
 				}
 			}
 		}
-		//Setting board2 as previous board state.
-		board2 = board;
 		for (int i = 0; i < boardArea; ++i) {
+
+			//Setting board2 as previous board state.
+			board2[i] = *board[i];
 
 			//Getting cursor position through this horrendous if statement.
 			if (GetConsoleScreenBufferInfo(hConsole, &cbsi)) {
@@ -90,16 +91,16 @@ int main() {
 			}
 			//Here are the rules for Conway's game of life.
 			bool rule =
-				(board[i] == 1 && (neighbors[i] == 2 || neighbors[i] == 3)) ||
-				(board[i] == 0 && neighbors[i] == 3);
+				(*board[i] == 1 && (neighbors[i] == 2 || neighbors[i] == 3)) ||
+				(*board[i] == 0 && neighbors[i] == 3);
 
-			board[i] = rule ? 1 : 0;
+			*board[i] = rule ? 1 : 0;
 
 			neighbors[i] = 0;
-			if (board[i] != board2[i]) {
+			if (*board[i] != board2[i]) {
 				
 				//Assigning off to 0 to no color and on to 1 to blank.
-				switch (board[i]) {
+				switch (*board[i]) {
 
 				case 0:
 					ColorAssigning(0, '0');
@@ -111,7 +112,7 @@ int main() {
 				SetTextColor(0);
 			}
 			else if ((i + 1) % height != height) {
-
+			
 				//Going to next line if the current entry matches the last entry that was here.
 				GoToXY(position.X + 1, position.Y);
 			}
@@ -128,8 +129,10 @@ int main() {
 		}
 	}
 
-	return 0;
-}
+	for(auto& b : board){
+
+		delete b;
+	}
 
 	return 0;
 }
